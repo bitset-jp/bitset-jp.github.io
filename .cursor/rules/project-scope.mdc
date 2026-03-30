@@ -1,0 +1,19 @@
+---
+description: Read AGENTS.md before using skills or referencing project information
+alwaysApply: true
+---
+
+# Project Scope
+
+Before making changes, using skills, or referencing project information, read `AGENTS.md` at the repository root.
+
+It contains:
+- Project identity and stack
+- Architecture summary and layering rules
+- i18n conventions
+- Key source directories
+- A document map for all `docs/` content
+- A skills table listing `.agents/skills/` procedures for common tasks
+- Core constraints that must not be violated
+
+For step-by-step workflows (adding pages, products, etc.), check `.agents/skills/` for a matching skill before writing a procedure from scratch.

@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../Hero.astro';
+import SectionHeading from '../SectionHeading.astro';
+import ProductCard from '../ProductCard.astro';
+import { getCollection } from 'astro:content';
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/translations';
+
+const lang = (Astro.currentLocale ?? 'ja') as Lang;
+const t = useTranslations(lang);
+
+const allProducts = await getCollection('products');
+const sorted = allProducts.sort((a, b) => a.data.order - b.data.order);
+
+const categories = [
+  { key: 'pondashi', labelKey: 'products.cat.pondashi' as const, descKey: 'products.cat.pondashi.desc' as const },
+  { key: 'hardware', labelKey: 'products.cat.hardware' as const, descKey: 'products.cat.hardware.desc' as const },
+  { key: 'network-tools', labelKey: 'products.cat.network-tools' as const, descKey: 'products.cat.network-tools.desc' as const },
+  { key: 'iot-tools', labelKey: 'products.cat.iot-tools' as const, descKey: 'products.cat.iot-tools.desc' as const },
+];
+---
+
+<BaseLayout title={t('products.title')}>
+  <Hero
+    title={t('products.hero.title')}
+    subtitle={t('products.hero.subtitle')}
+  />
+
+  {categories.map((cat, idx) => {
+    const products = sorted.filter((p) => p.data.category === cat.key);
+    if (products.length === 0) return null;
+    return (
+      <section class:list={['py-20', idx % 2 === 1 && 'bg-gray-50']} id={cat.key}>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading title={t(cat.labelKey as any)} subtitle={t(cat.descKey as any)} />
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                slug={product.id}
+                title={lang === 'ja' ? product.data.titleJa : product.data.title}
+                description={lang === 'ja' ? product.data.descriptionJa : product.data.description}
+                category={product.data.category}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  })}
+</BaseLayout>

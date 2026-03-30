@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../Hero.astro';
+import SectionHeading from '../SectionHeading.astro';
+import PhilosophyCard from '../PhilosophyCard.astro';
+import TimelineItem from '../TimelineItem.astro';
+import TechBadge from '../TechBadge.astro';
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/translations';
+
+const lang = (Astro.currentLocale ?? 'ja') as Lang;
+const t = useTranslations(lang);
+
+const timelineKeys = ['1', '2', '3', '4', '5', '6', '7'] as const;
+const timelineDates = ['2017', '2017', '2018', '2018', '2019', '2020', '2024'];
+const timeline = timelineKeys.map((k, i) => ({
+  date: timelineDates[i],
+  title: t(`about.timeline.${k}.title` as any),
+  description: t(`about.timeline.${k}.desc` as any),
+}));
+
+const techCategories = [
+  { labelKey: 'about.techCat.hardware' as const, items: ['Raspberry Pi', 'ARM Cortex', 'HDMI', 'USB', 'GPIO', 'SPI/I2C', '3D Printing', 'VESA Mount'] },
+  { labelKey: 'about.techCat.programming' as const, items: ['C/C++', 'Python', 'Rust', 'TypeScript', 'Node.js', 'React', 'Bash/Shell'] },
+  { labelKey: 'about.techCat.protocols' as const, items: ['ECHONET Lite', 'TCP/IP', 'UDP', 'PCAP', 'Wi-Fi', 'Ethernet', 'DHCP'] },
+  { labelKey: 'about.techCat.tools' as const, items: ['Linux', 'Docker', 'Git', 'Wireshark', 'Google Drive API', 'GitHub Actions'] },
+];
+
+const philosophyKeys = ['1', '2', '3', '4'] as const;
+---
+
+<BaseLayout title={t('about.title')}>
+  <Hero
+    title={t('about.hero.title')}
+    subtitle={t('about.hero.subtitle')}
+  />
+
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto">
+        <SectionHeading title={t('about.whoWeAre.title')} />
+        <div class="prose prose-lg text-gray-600 space-y-4">
+          <p>{t('about.whoWeAre.p1')}</p>
+          <p>{t('about.whoWeAre.p2')}</p>
+          <p>{t('about.whoWeAre.p3')}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <SectionHeading
+        title={t('about.philosophy.title')}
+        subtitle={t('about.philosophy.subtitle')}
+      />
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {philosophyKeys.map((k) => (
+          <PhilosophyCard
+            number={Number(k)}
+            title={t(`home.philosophy.${k}.title` as any)}
+            titleJa={t(`home.philosophy.${k}.titleJa` as any)}
+            description={t(`home.philosophy.${k}.desc` as any)}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <SectionHeading title={t('about.history.title')} subtitle={t('about.history.subtitle')} />
+      <div class="max-w-2xl mx-auto mt-8">
+        {timeline.map((item) => (
+          <TimelineItem date={item.date} title={item.title} description={item.description} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <SectionHeading title={t('about.techStack.title')} subtitle={t('about.techStack.subtitle')} />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {techCategories.map((cat) => (
+          <div>
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">{t(cat.labelKey as any)}</h3>
+            <div class="flex flex-wrap gap-2">
+              {cat.items.map((item) => (
+                <TechBadge label={item} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <SectionHeading title={t('about.companyInfo.title')} />
+      <div class="max-w-2xl mx-auto">
+        <dl class="divide-y divide-gray-200">
+          <div class="py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">{t('about.companyInfo.name')}</dt>
+            <dd class="text-sm text-gray-900 col-span-2">{t('about.companyInfo.nameValue')}</dd>
+          </div>
+          <div class="py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">{t('about.companyInfo.founded')}</dt>
+            <dd class="text-sm text-gray-900 col-span-2">2017</dd>
+          </div>
+          <div class="py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">{t('about.companyInfo.location')}</dt>
+            <dd class="text-sm text-gray-900 col-span-2" set:html={t('about.companyInfo.locationValue').replace('\n', '<br />')} />
+          </div>
+          <div class="py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">{t('about.companyInfo.phone')}</dt>
+            <dd class="text-sm text-gray-900 col-span-2">050-7119-2899</dd>
+          </div>
+          <div class="py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">{t('about.companyInfo.focus')}</dt>
+            <dd class="text-sm text-gray-900 col-span-2">{t('about.companyInfo.focusValue')}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

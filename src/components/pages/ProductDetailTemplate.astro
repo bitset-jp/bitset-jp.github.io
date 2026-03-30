@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { render } from 'astro:content';
+import { useTranslations, getLocalizedPath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/translations';
+import { renderMarkdownString } from '../../lib/renderMarkdownString';
+
+interface Props {
+  entry: any;
+}
+
+const { entry } = Astro.props;
+const lang = (Astro.currentLocale ?? 'ja') as Lang;
+const t = useTranslations(lang);
+const { Content } = await render(entry);
+const bodyJaHtml =
+  lang === 'ja' && entry.data.bodyJa
+    ? await renderMarkdownString(entry.data.bodyJa)
+    : null;
+
+const categoryColors: Record<string, string> = {
+  'pondashi': 'bg-blue-100 text-blue-700',
+  'network-tools': 'bg-purple-100 text-purple-700',
+  'iot-tools': 'bg-green-100 text-green-700',
+  'hardware': 'bg-orange-100 text-orange-700',
+};
+
+const title = lang === 'ja' ? entry.data.titleJa : entry.data.title;
+const altTitle = lang === 'ja' ? entry.data.title : entry.data.titleJa;
+const description = lang === 'ja' ? entry.data.descriptionJa : entry.data.description;
+const features = lang === 'ja' ? entry.data.featuresJa : entry.data.features;
+const specs = lang === 'ja' ? (entry.data.specsJa ?? entry.data.specs) : entry.data.specs;
+const categoryLabel = t(`product.category.${entry.data.category}` as any);
+---
+
+<BaseLayout title={title}>
+  <div class="bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <a href={getLocalizedPath('/products', lang)} class="inline-flex items-center text-primary-300 hover:text-white transition-colors mb-6">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+        </svg>
+        {t('product.backToProducts')}
+      </a>
+      <span class:list={['inline-block px-3 py-1 rounded-full text-xs font-medium mb-4', categoryColors[entry.data.category] || 'bg-gray-100 text-gray-700']}>
+        {categoryLabel}
+      </span>
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white">{title}</h1>
+      <p class="text-lg text-primary-300 mt-2">{altTitle}</p>
+      <p class="mt-4 text-lg text-primary-200 max-w-3xl">{description}</p>
+    </div>
+  </div>
+
+  <section class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div class="lg:col-span-2">
+          {bodyJaHtml ? (
+            <div
+              class="prose prose-lg max-w-none text-gray-700 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-a:text-primary-600"
+              set:html={bodyJaHtml}
+            />
+          ) : (
+            <div class="prose prose-lg max-w-none text-gray-700 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-a:text-primary-600">
+              <Content />
+            </div>
+          )}
+        </div>
+
+        <aside class="space-y-8">
+          <div class="bg-gray-50 rounded-xl p-6">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t('product.keyFeatures')}</h3>
+            <ul class="space-y-3">
+              {features.map((feature: string) => (
+                <li class="flex gap-3 text-sm text-gray-700">
+                  <svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {specs && specs.length > 0 && (
+            <div class="bg-gray-50 rounded-xl p-6">
+              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t('product.specifications')}</h3>
+              <dl class="space-y-3">
+                {specs.map((spec: { label: string; value: string }) => (
+                  <div>
+                    <dt class="text-xs font-medium text-gray-500 uppercase">{spec.label}</dt>
+                    <dd class="text-sm text-gray-900 mt-0.5">{spec.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
+          {entry.data.amazonUrl && (
+            <a
+              href={entry.data.amazonUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center justify-center gap-2 w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+            >
+              {t('product.viewOnAmazon')}
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          )}
+        </aside>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

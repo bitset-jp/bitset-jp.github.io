@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../Hero.astro';
+import { getCollection, render } from 'astro:content';
+import { useTranslations, getLocalizedPath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/translations';
+import { renderMarkdownString } from '../../lib/renderMarkdownString';
+
+const lang = (Astro.currentLocale ?? 'ja') as Lang;
+const t = useTranslations(lang);
+
+const entries = await getCollection('news');
+const sorted = entries.sort((a, b) => {
+  const t1 = a.data.pubDate.getTime();
+  const t2 = b.data.pubDate.getTime();
+  if (t2 !== t1) return t2 - t1;
+  return b.id.localeCompare(a.id);
+});
+
+const rendered = await Promise.all(
+  sorted.map(async (entry) => {
+    const { Content } = await render(entry);
+    const bodyJaHtml =
+      lang === 'ja' && entry.data.bodyJa
+        ? await renderMarkdownString(entry.data.bodyJa)
+        : null;
+    return { entry, Content, bodyJaHtml };
+  }),
+);
+
+function formatDate(d: Date): string {
+  return d.toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+---
+
+<BaseLayout title={t('news.title')}>
+  <Hero title={t('news.hero.title')} subtitle={t('news.hero.subtitle')} />
+
+  <section class="py-16 md:py-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {rendered.map(({ entry, Content, bodyJaHtml }) => {
+        const title = lang === 'ja' ? entry.data.titleJa : entry.data.title;
+        const desc =
+          lang === 'ja'
+            ? (entry.data.descriptionJa ?? entry.data.description)
+            : (entry.data.description ?? entry.data.descriptionJa);
+        const href = entry.data.linkPath
+          ? getLocalizedPath(entry.data.linkPath, lang)
+          : entry.data.link;
+        const isExternal = Boolean(entry.data.link && !entry.data.linkPath);
+        const linkLabel = isExternal ? t('news.linkExternal') : t('news.linkRelated');
+        return (
+          <article class="border-b border-gray-200 pb-12 last:border-0 last:pb-0">
+            <time
+              datetime={entry.data.pubDate.toISOString()}
+              class="text-sm font-medium text-primary-600"
+            >
+              {formatDate(entry.data.pubDate)}
+            </time>
+            <h2 class="mt-2 text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
+            {desc && <p class="mt-2 text-gray-600 leading-relaxed">{desc}</p>}
+            {href && (
+              <p class="mt-3">
+                <a
+                  href={href}
+                  class="text-primary-600 font-medium hover:text-primary-800 underline-offset-2 hover:underline"
+                  {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {linkLabel}
+                </a>
+              </p>
+            )}
+            {bodyJaHtml ? (
+              <div
+                class="mt-4 prose prose-gray max-w-none text-gray-700 prose-a:text-primary-600"
+                set:html={bodyJaHtml}
+              />
+            ) : (
+              <div class="mt-4 prose prose-gray max-w-none text-gray-700 prose-a:text-primary-600">
+                <Content />
+              </div>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  </section>
+</BaseLayout>
